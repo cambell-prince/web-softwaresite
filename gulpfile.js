@@ -7,16 +7,6 @@ var livereload = require('gulp-livereload');
 var lr = require('tiny-lr');
 var server = lr();
 
-/*
-var srcTheme = [
-    'htdocs/wp/wp-content/themes/ttp/views/*.twig',
-    'htdocs/wp/wp-content/themes/ttp/*.php',
-    'htdocs/wp/wp-content/themes/ttp/*.css',
-    'htdocs/wp/wp-content/themes/ttp/css/*.css',
-    'htdocs/wp/wp-content/themes/ttp/js/*.js'
-];
-*/
-
 var srcTheme = [
 	'htdocs/wp/wp-content/themes/silproduct1/views/*.twig',
 	'htdocs/wp/wp-content/themes/silproduct1/*.php',
@@ -47,13 +37,13 @@ gulp.task('upload', function() {
 	var options = {
 		silent: false,
 		src: "htdocs",
-		dest: "root@new.traintoproclaim.com:/var/www/virtual/new.traintoproclaim.com/htdocs/",
+		dest: "root@software.sil.org:/var/www/sil.org_software/htdocs/",
 		key: "/home/cambell/dev.key"
 	};
 	gulp.src('htdocs')
-		.pipe(exec('rsync -rzlt --chmod=Dug=rwx,Fug=rw,o-rwx --delete --exclude-from="upload-exclude.txt" --stats --rsync-path="sudo -u vu2003 rsync" --rsh="ssh -i <%= options.key %>" <%= file.path %>/ <%= options.dest %>', options));
-	gulp.src('htdocs/images')
-		.pipe(exec('rsync -rzlt --chmod=Dug=rwx,Fug=rw,o-rwx --stats --rsync-path="sudo -u vu2003 rsync" --rsh="ssh -i <%= options.key %>" <%= file.path %>/ <%= options.dest %>images/', options));
+		.pipe(exec('rsync -rzlt --chmod=Dug=rwx,Fug=rw,o-rwx --delete --exclude-from="upload-exclude.txt" --stats --rsync-path="sudo -u www-data rsync" --rsh="ssh -i <%= options.key %>" <%= file.path %>/ <%= options.dest %>', options));
+//	gulp.src('htdocs/images')
+//		.pipe(exec('rsync -rzlt --chmod=Dug=rwx,Fug=rw,o-rwx --stats --rsync-path="sudo -u www-data rsync" --rsh="ssh -i <%= options.key %>" <%= file.path %>/ <%= options.dest %>images/', options));
 });
 
 
