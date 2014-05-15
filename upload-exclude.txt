@@ -1,2 +1,4 @@
-configuration.php
-/images/
+.git
+transcelerator/
+wp/wp-config.php
+wp/wp-content/uploads
