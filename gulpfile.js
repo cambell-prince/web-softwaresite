@@ -8,11 +8,11 @@ var lr = require('tiny-lr');
 var server = lr();
 
 var srcTheme = [
-	'htdocs/wp/wp-content/themes/silproduct1/views/*.twig',
-	'htdocs/wp/wp-content/themes/silproduct1/*.php',
-	'htdocs/wp/wp-content/themes/silproduct1/*.css',
-	'htdocs/wp/wp-content/themes/silproduct1/css/*.css',
-	'htdocs/wp/wp-content/themes/silproduct1/js/*.js'
+	'htdocs/wp/wp-content/themes/web-product-theme1/views/*.twig',
+	'htdocs/wp/wp-content/themes/web-product-theme1/*.php',
+	'htdocs/wp/wp-content/themes/web-product-theme1/*.css',
+	'htdocs/wp/wp-content/themes/web-product-theme1/css/*.css',
+	'htdocs/wp/wp-content/themes/web-product-theme1/js/*.js'
 ];
 
 gulp.task('default', function() {
