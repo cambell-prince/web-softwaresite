@@ -4,7 +4,7 @@ Plugin Name: NS Cloner - Site Copier
 Plugin URI: http://neversettle.it
 Description: All new V3 of the amazing time saving Never Settle Cloner! NS Cloner creates a new site as an exact clone / duplicate / copy of an existing site with theme and all plugins and settings intact in just a few steps. Check out the add-ons for additional powerful features!
 Author: Never Settle
-Version: 3.0.4.2
+Version: 3.0.4.9
 Network: true
 Text Domain: ns-cloner
 Author URI: http://neversettle.it
@@ -61,6 +61,7 @@ require_once(NS_CLONER_V3_PLUGIN_DIR.'/lib/ns-wp-utils.php');
 require_once(NS_CLONER_V3_PLUGIN_DIR.'/ns-cloner-addon-base.php');
 require_once(NS_CLONER_V3_PLUGIN_DIR.'/ns-cloner-section-base.php');
 require_once(NS_CLONER_V3_PLUGIN_DIR.'/ns-sidebar/ns-sidebar.php');
+require_once(NS_CLONER_V3_PLUGIN_DIR.'/lib/plugin-compatibility.php');
 
 // load after plugins_loaded so that textdomain/translation works
 add_action( 'plugins_loaded', 'ns_cloner_instantiate' );
@@ -74,7 +75,7 @@ class ns_cloner {
 	/**
 	 * Class Globals
 	 */
-	var $version = '3.0.4.2';
+	var $version = '3.0.4.9';
 	var $menu_slug = 'ns-cloner';
 	var $capability = 'manage_network_options';
 	var $global_tables = array(
@@ -126,7 +127,7 @@ class ns_cloner {
 		// add hook for addons that need to set stuff before the core loads
 		do_action( 'ns_cloner_before_construct', $this );
 		// setup languages
-		load_plugin_textdomain( 'ns-cloner', false, NS_CLONER_V3_PLUGIN_DIR.'languages' ); 
+		load_plugin_textdomain( 'ns-cloner', false, dirname(plugin_basename(__FILE__)).'/languages' ); 
 		// add functionality handler for admin 		
 		add_action( 'admin_init', array( $this, 'admin_init' ) );		
 		// add css for admin		
@@ -218,7 +219,7 @@ class ns_cloner {
 		$duplicate_count = 1;
 		do { 
 			$duplicate_count++;
-			$target_name = preg_replace('/\..+$/','',$blog_name)."-$duplicate_count";
+			$target_name = preg_replace( array('|/|','/\..+$/'), '', $blog_name )."-$duplicate_count";
 			$target_domain = is_subdomain_install()? $target_name.'.'.$site_domain : $site_domain;
 			$target_path = is_subdomain_install()? $site_base : $site_base.$target_name.'/';
 		} while( domain_exists($target_domain,$target_path) );
@@ -398,17 +399,15 @@ class ns_cloner {
 		// Setup replacements for standard url/name substitution + character encoding issues
 		$search	= array(
 			$this->source_upload_dir_relative,
-			$this->source_upload_url_relative,
+			$this->source_upload_url,
 			$this->source_subd,
 			$this->source_prefix."user_roles",
-			$this->source_title
 		);
 		$replace = array(
 			$this->target_upload_dir_relative,
-			$this->target_upload_url_relative,
+			$this->target_upload_url,
 			$this->target_subd,
 			$this->target_prefix."user_roles",
-			$this->target_title
 		);
 		$search = apply_filters( 'ns_cloner_search_items', $search, $this);
 		$replace = apply_filters( 'ns_cloner_replace_items', $replace, $this);
@@ -493,15 +492,22 @@ class ns_cloner {
 					){
 						continue;
 					}
+					// make sure target title option doesn't get lost/replaced
+					if( preg_match('/options$/',$target_table) && isset($row['option_name']) && $row['option_name']=='blogname' ){
+						$row['option_value'] = $this->target_title;
+					}
 					// perform replacements
 					foreach($row as $field=>$value){
 						$row_count_replacements_made = ns_recursive_search_replace( $value, $search, $replace, $regex_search, $regex_replace, isset($this->request['case_sensitive']) );
 						$row[$field] = apply_filters( 'ns_cloner_field_value', $value, $field, $row, $this );
 						$count_replacements_made += $row_count_replacements_made;
 					}
-					// actually copy row
-					$this->target_db->insert( $target_table, $row );
+					// add hooks for compatibility fixes and insert the values
+					$format = apply_filters( 'ns_cloner_insert_format', null, $target_table );
+					$row = apply_filters( 'ns_cloner_insert_values', $row, $target_table );
+					$this->target_db->insert( $target_table, $row, $format );
 					$this->handle_any_db_errors( $this->target_db, "INSERT INTO $target_table via wpdb --> ".print_r($row,true) );
+					do_action( 'ns_cloner_after_insert', $row, $target_table );
 				} // end rows loop
 				
 			} // end tables loop
@@ -667,7 +673,7 @@ class ns_cloner {
 		//upload urls
 		if( in_array('upload_url',$vars) ){
 			$this->source_upload_url = ns_get_upload_url( $this->source_id, NS_CLONER_LOG_FILE_DETAILED );
-			$this->source_upload_url_relative = str_replace( get_site_url().'/', '', $this->source_upload_url );
+			$this->source_upload_url_relative = str_replace( get_site_url($this->source_id).'/', '', $this->source_upload_url );
 			$this->dlog( "Setting source full upload url: " . $this->source_upload_url . " and shorter relative url: " .$this->source_upload_url_relative );
 		}	
 		//urls
@@ -691,8 +697,7 @@ class ns_cloner {
 						ns_add_admin_notice( __("Could not connect to and select the target database","ns-cloner"), "error", $this->menu_slug, true );
 						wp_redirect(wp_get_referer());
 						exit;
-					}
-								
+					}								
 				}
 			}
 			else{
@@ -728,7 +733,7 @@ class ns_cloner {
 		//upload urls
 		if( in_array('upload_url',$vars) ){
 			$this->target_upload_url = ns_get_upload_url( $this->target_id, NS_CLONER_LOG_FILE_DETAILED );
-			$this->target_upload_url_relative = str_replace( get_site_url().'/', '', $this->target_upload_url );
+			$this->target_upload_url_relative = str_replace( get_site_url($this->target_id).'/', '', $this->target_upload_url );
 			$this->dlog( "Setting target full upload url: " . $this->target_upload_url . " and shorter relative url: " .$this->target_upload_url_relative );
 		}
 		//urls
