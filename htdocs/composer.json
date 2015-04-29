@@ -24,12 +24,12 @@
     "php": ">=5.3.0",
     "wordpress": "4.1.*",
     "fancyguy/webroot-installer": "1.0.0",
-    "wpackagist-plugin/timber-library": "0.20.*",
+    "wpackagist-plugin/timber-library": "0.21.*",
     "wpackagist-plugin/image-widget": "4.*",
-    "wpackagist-plugin/ns-cloner-site-copier": "3.0.4.9",
-    "wpackagist-plugin/contact-form-7": "4.1.1",
+    "wpackagist-plugin/ns-cloner-site-copier": "3.0.5.1",
+    "wpackagist-plugin/contact-form-7": "4.1.*",
     "wpackagist-plugin/really-simple-captcha": "1.8.*",
-    "wpackagist-plugin/jetpack": "3.3.2"
+    "wpackagist-plugin/jetpack": "3.5.*"
   },
   "extra": {
     "webroot-dir": "wp",
