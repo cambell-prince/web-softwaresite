@@ -3,6 +3,7 @@ transcelerator/
 wp-config.php
 wp/wp-admin/
 wp/wp-config.php
+wp/wp-content/plugins
 wp/wp-content/uploads
 wp/wp-includes/
 wp/index.php
