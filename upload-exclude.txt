@@ -1,5 +1,4 @@
 .git
-transcelerator/
 wp-config.php
 wp/wp-admin/
 wp/wp-config.php
